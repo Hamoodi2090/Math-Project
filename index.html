@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math project</title>
+  <meta name="description" content="تحدي عقلك في لعبة ذكاء تفاعلية، أجب على الأسئلة لتكشف الألغاز وتصل للرقم الخفي في مغامرة شيقة.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="background-glow glow-left"></div>
+  <div class="background-glow glow-right"></div>
+
+  <main class="page-shell">
+    <section class="hero-card" id="hero">
+      <div class="hero-badge">لعبة تخمين الرقم</div>
+      <h2 class="hero-kicker">خمّن الرقم السري 🔮</h2>
+      <p class="hero-subtitle">جاوب على الأسئلة صح وراح تحصل تلميحات!</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-icon primary">◎</span>
+          <span class="hero-stat-label">محاولات:</span>
+          <span class="hero-stat-value" id="attempts-value">0</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-icon accent">✦</span>
+          <span class="hero-stat-label">تلميحات:</span>
+          <span class="hero-stat-value" id="hints-value">0</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="app"></section>
+  </main>
+
+  <script src="js/start.js"></script>
+</body>
+</html>
