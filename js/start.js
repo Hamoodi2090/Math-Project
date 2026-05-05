@@ -152,14 +152,14 @@ const questions = [
 ];
 
 const state = {
-    screen: "start",
-    secretNumber: null,
-    hints: [],
-    attempts: 0,
-    questionsAnswered: 0,
-    currentQuestion: null,
-    wrongGuessMessage: "",
-    usedQuestionIndexes: []
+  screen: "start",
+  secretNumber: null,
+  hints: [],
+  attempts: 0,
+  questionsAnswered: 0,
+  currentQuestion: null,
+  wrongGuessMessage: "",
+  usedQuestionIndexes: []
 };
 
 const app = document.getElementById("app");
@@ -168,214 +168,231 @@ const hintsValue = document.getElementById("hints-value");
 const hero = document.getElementById("hero");
 
 function updateTopStats() {
-    attemptsValue.textContent = state.attempts;
-    hintsValue.textContent = state.hints.length;
+  attemptsValue.textContent = state.attempts;
+  hintsValue.textContent = state.hints.length;
 }
 
 function updateHeroVisibility() {
-    if (state.screen === "start") {
-        hero.classList.add("hidden");
-    } else {
-        hero.classList.remove("hidden");
-    }
+  if (state.screen === "start") {
+    hero.classList.add("hidden");
+  } else {
+    hero.classList.remove("hidden");
+  }
 }
 
 function getRandomNumber() {
-    return Math.floor(Math.random() * 100) + 1;
+  return Math.floor(Math.random() * 100) + 1;
 }
 
-function getNextQuestion() {
-    const availableIndexes = questions
-        .map((_, index) => index)
-        .filter((index) => !state.usedQuestionIndexes.includes(index));
+function chooseQuestion() {
+  const availableIndexes = [];
 
-    if (!availableIndexes.length) {
-        return {
-            question: questions[Math.floor(Math.random() * questions.length)],
-            index: -1
-        };
+  for (let i = 0; i < questions.length; i++) {
+    if (!state.usedQuestionIndexes.includes(i)) {
+      availableIndexes.push(i);
     }
+  }
 
-    const chosenIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
-    return { question: questions[chosenIndex], index: chosenIndex };
+  if (availableIndexes.length === 0) {
+    return questions[Math.floor(Math.random() * questions.length)];
+  }
+
+  const randomIndex =
+    availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+
+  state.usedQuestionIndexes.push(randomIndex);
+  return questions[randomIndex];
 }
 
-function getNextHint(number, existingHints) {
-    const pool = [];
+function buildHint(number) {
+  const allHints = [];
 
-    if (number % 2 === 0) {
-        pool.push("الرقم زوجي (يقبل القسمة على 2)");
-    } else {
-        pool.push("الرقم فردي (ما يقبل القسمة على 2)");
-    }
+  if (number % 2 === 0) {
+    allHints.push("الرقم زوجي");
+  } else {
+    allHints.push("الرقم فردي");
+  }
 
-    if (number > 50) {
-        pool.push("الرقم أكبر من 50");
-    } else {
-        pool.push("الرقم أصغر من أو يساوي 50");
-    }
+  if (number > 50) {
+    allHints.push("الرقم أكبر من 50");
+  } else {
+    allHints.push("الرقم أصغر من أو يساوي 50");
+  }
 
-    if (number % 5 === 0) {
-        pool.push("الرقم يقبل القسمة على 5");
-    } else {
-        pool.push("الرقم ما يقبل القسمة على 5");
-    }
+  if (number % 5 === 0) {
+    allHints.push("الرقم يقبل القسمة على 5");
+  } else {
+    allHints.push("الرقم لا يقبل القسمة على 5");
+  }
 
-    if (number > 75) {
-        pool.push("الرقم أكبر من 75");
-    } else if (number > 50) {
-        pool.push("الرقم بين 51 و 75");
-    } else if (number > 25) {
-        pool.push("الرقم بين 26 و 50");
-    } else {
-        pool.push("الرقم أصغر من أو يساوي 25");
-    }
+  if (number > 75) {
+    allHints.push("الرقم أكبر من 75");
+  } else if (number > 50) {
+    allHints.push("الرقم بين 51 و 75");
+  } else if (number > 25) {
+    allHints.push("الرقم بين 26 و 50");
+  } else {
+    allHints.push("الرقم أصغر من أو يساوي 25");
+  }
 
-    const digits = String(number);
-    if (digits.length === 2) {
-        pool.push(`أول رقم (خانة العشرات) هو ${digits[0]}`);
-        pool.push(`آخر رقم (خانة الآحاد) هو ${digits[1]}`);
-    } else {
-        pool.push("الرقم مكون من خانة واحدة (أقل من 10)");
-    }
+  const digits = String(number);
 
-    if (number % 3 === 0) {
-        pool.push("الرقم يقبل القسمة على 3");
-    } else {
-        pool.push("الرقم ما يقبل القسمة على 3");
-    }
+  if (digits.length === 2) {
+    allHints.push(`خانة العشرات هي ${digits[0]}`);
+    allHints.push(`خانة الآحاد هي ${digits[1]}`);
+  } else {
+    allHints.push("الرقم من خانة واحدة");
+  }
 
-    const unusedHints = pool.filter((hint) => !existingHints.includes(hint));
-    if (!unusedHints.length) {
-        return `الرقم قريب جداً من ${number + (Math.random() > 0.5 ? 1 : -1)}`;
-    }
+  if (number % 3 === 0) {
+    allHints.push("الرقم يقبل القسمة على 3");
+  } else {
+    allHints.push("الرقم لا يقبل القسمة على 3");
+  }
 
-    return unusedHints[Math.floor(Math.random() * unusedHints.length)];
+  const unusedHints = allHints.filter((hint) => !state.hints.includes(hint));
+
+  if (unusedHints.length === 0) {
+    return `الرقم قريب جدًا من ${number + (Math.random() > 0.5 ? 1 : -1)}`;
+  }
+
+  return unusedHints[Math.floor(Math.random() * unusedHints.length)];
 }
 
-function queueQuestion() {
-    const { question, index } = getNextQuestion();
-    if (index !== -1) {
-        state.usedQuestionIndexes = [...state.usedQuestionIndexes, index];
-    }
-    state.currentQuestion = question;
-    state.screen = "question";
-    render();
+function showNextQuestion() {
+  state.currentQuestion = chooseQuestion();
+  state.screen = "question";
+  render();
 }
 
 function startGame() {
-    state.screen = "question";
-    state.secretNumber = getRandomNumber();
-    state.hints = [];
-    state.attempts = 0;
-    state.questionsAnswered = 0;
-    state.currentQuestion = null;
-    state.wrongGuessMessage = "";
-    state.usedQuestionIndexes = [];
-    queueQuestion();
+  state.secretNumber = getRandomNumber();
+  state.hints = [];
+  state.attempts = 0;
+  state.questionsAnswered = 0;
+  state.currentQuestion = null;
+  state.wrongGuessMessage = "";
+  state.usedQuestionIndexes = [];
+  showNextQuestion();
 }
 
 function handleAnswer(choice) {
-    const buttons = [...document.querySelectorAll(".answer-button")];
-    const correct = choice === state.currentQuestion.correct_answer;
+  const isCorrect = choice === state.currentQuestion.correct_answer;
+  const buttons = document.querySelectorAll(".answer-button");
 
-    buttons.forEach((button) => {
-        button.disabled = true;
-        const value = button.dataset.value;
-        if (value === state.currentQuestion.correct_answer) {
-            button.classList.add("correct");
-            button.querySelector(".answer-status").textContent = "✓";
-        } else if (value === choice) {
-            button.classList.add("wrong");
-            button.querySelector(".answer-status").textContent = "✕";
-        } else {
-            button.classList.add("dimmed");
-        }
-    });
+  buttons.forEach((button) => {
+    button.disabled = true;
 
-    window.setTimeout(() => {
-        if (correct) {
-            state.questionsAnswered += 1;
-            const nextHint = getNextHint(state.secretNumber, state.hints);
-            state.hints = [...state.hints, nextHint];
-        }
-        state.screen = "guess";
-        render();
-    }, 1200);
+    const value = button.dataset.value;
+    const status = button.querySelector(".answer-status");
+
+    if (value === state.currentQuestion.correct_answer) {
+      button.classList.add("correct");
+      status.textContent = "✓";
+    } else if (value === choice) {
+      button.classList.add("wrong");
+      status.textContent = "✕";
+    } else {
+      button.classList.add("dimmed");
+    }
+  });
+
+  setTimeout(() => {
+    if (isCorrect) {
+      state.questionsAnswered += 1;
+      state.hints.push(buildHint(state.secretNumber));
+      state.screen = "guess";
+      render();
+    } else {
+      state.attempts += 1;
+      state.wrongGuessMessage = "إجابة خاطئة! جاوب سؤال ثاني";
+      showNextQuestion();
+    }
+  }, 1200);
 }
 
 function handleGuessSubmit(event) {
-    event.preventDefault();
-    const input = document.getElementById("guess-input");
-    const guess = Number.parseInt(input.value, 10);
+  event.preventDefault();
 
-    if (!Number.isInteger(guess) || guess < 1 || guess > 100) {
-        return;
-    }
+  const input = document.getElementById("guess-input");
+  const guess = parseInt(input.value, 10);
 
-    state.attempts += 1;
+  if (isNaN(guess) || guess < 1 || guess > 100) {
+    return;
+  }
 
-    if (guess === state.secretNumber) {
-        state.screen = "win";
-    } else {
-        const direction = guess > state.secretNumber ? "أقل" : "أكبر";
-        state.wrongGuessMessage = `${guess} مو الرقم! الرقم السري ${direction} من ${guess}`;
-        queueQuestion();
-        return;
-    }
+  state.attempts += 1;
 
+  if (guess === state.secretNumber) {
+    state.screen = "win";
     render();
+    return;
+  }
+
+  if (guess > state.secretNumber) {
+    state.wrongGuessMessage = `${guess} ليس الرقم. الرقم السري أقل من ${guess}`;
+  } else {
+    state.wrongGuessMessage = `${guess} ليس الرقم. الرقم السري أكبر من ${guess}`;
+  }
+
+  showNextQuestion();
 }
 
 function renderStart() {
-    app.innerHTML = `
+  app.innerHTML = `
     <section class="screen start-screen">
       <div class="start-emoji">🎯</div>
       <h1 class="start-title">لعبة تخمين الرقم</h1>
       <p class="start-description">
-        الكمبيوتر اختار رقم سري من 1 لـ 100. جاوب على أسئلة المعرفة واحصل على تلميحات تساعدك تعرف الرقم!
+        الكمبيوتر اختار رقم سري من 1 إلى 100. جاوب على الأسئلة وخذ تلميحات تساعدك تعرف الرقم.
       </p>
 
       <div class="howto-list">
         <div class="howto-item">
           <span class="howto-step primary">1</span>
-          <p class="howto-text">جاوب السؤال صح ✅</p>
+          <p class="howto-text">جاوب السؤال صح</p>
         </div>
         <div class="howto-item">
           <span class="howto-step accent">2</span>
-          <p class="howto-text">تحصل تلميح عن الرقم 💡</p>
+          <p class="howto-text">خذ تلميح عن الرقم</p>
         </div>
         <div class="howto-item">
           <span class="howto-step success">3</span>
-          <p class="howto-text">حاول تخمّن الرقم! 🔮</p>
+          <p class="howto-text">خمّن الرقم</p>
         </div>
       </div>
 
-      <button class="button primary large" id="start-button">ابدأ اللعب!</button>
+      <button class="button primary large" id="start-button">!ابدأ اللعب</button>
     </section>
   `;
 
-    document.getElementById("start-button").addEventListener("click", startGame);
+  document.getElementById("start-button").addEventListener("click", startGame);
 }
 
 function renderQuestion() {
-    const wrongAlert = state.wrongGuessMessage
-        ? `
+  let wrongAlert = "";
+
+  if (state.wrongGuessMessage) {
+    wrongAlert = `
       <div class="alert">
         <strong>${state.wrongGuessMessage}</strong>
-        <span>جاوب السؤال وحاول مرة ثانية!</span>
+        <span>جاوب السؤال ثم حاول مرة ثانية</span>
       </div>
-    `
-        : "";
+    `;
+  }
 
-    const answers = state.currentQuestion.options.map((option) => `
-    <button class="button answer-button" data-value="${option}">
-      <span>${option}</span>
-      <span class="answer-status"></span>
-    </button>
-  `).join("");
+  const answersHtml = state.currentQuestion.options
+    .map((option) => {
+      return `
+        <button class="button answer-button" data-value="${option}">
+          <span>${option}</span>
+          <span class="answer-status"></span>
+        </button>
+      `;
+    })
+    .join("");
 
-    app.innerHTML = `
+  app.innerHTML = `
     <section class="screen">
       ${wrongAlert}
       <article class="panel">
@@ -385,67 +402,88 @@ function renderQuestion() {
             <span class="panel-icon primary">س</span>
             <h3 class="panel-heading">سؤال المعرفة</h3>
           </div>
+
           <p class="question-text">${state.currentQuestion.question}</p>
-          <div class="answers">${answers}</div>
+          <div class="answers">${answersHtml}</div>
         </div>
       </article>
     </section>
   `;
 
-    document.querySelectorAll(".answer-button").forEach((button) => {
-        button.addEventListener("click", () => handleAnswer(button.dataset.value));
+  document.querySelectorAll(".answer-button").forEach((button) => {
+    button.addEventListener("click", function () {
+      handleAnswer(button.dataset.value);
     });
+  });
 }
 
 function renderGuess() {
-    const hintsMarkup = state.hints.length
-        ? `
+  let hintsHtml = "";
+
+  if (state.hints.length > 0) {
+    hintsHtml = `
       <div class="hint-group">
-        <p class="hint-label"> التلميحات:</p>
+        <p class="hint-label">التلميحات:</p>
         <div class="hint-list">
-          ${state.hints.map((hint, index) => `
-            <div class="hint-card">
-              <span class="hint-number">${index + 1}</span>
-              <p class="hint-text">${hint}</p>
-            </div>
-          `).join("")}
+          ${state.hints
+            .map((hint, index) => {
+              return `
+                <div class="hint-card">
+                  <span class="hint-number">${index + 1}</span>
+                  <p class="hint-text">${hint}</p>
+                </div>
+              `;
+            })
+            .join("")}
         </div>
       </div>
-    `
-        : "";
+    `;
+  }
 
-    app.innerHTML = `
+  app.innerHTML = `
     <section class="screen">
       <article class="panel">
         <div class="panel-bar accent"></div>
         <div class="panel-body">
           <div class="panel-title">
             <span class="panel-icon accent">#</span>
-            <h3 class="panel-heading">خمّن الرقم!</h3>
+            <h3 class="panel-heading">خمّن الرقم</h3>
           </div>
-          ${hintsMarkup}
+
+          ${hintsHtml}
+
           <form class="guess-form" id="guess-form">
-            <input class="guess-input" id="guess-input" type="number" min="1" max="100" placeholder="أدخل رقم من 1 إلى 100" dir="ltr" required>
-            <button class="button primary medium" type="submit">خمّن!</button>
+            <input
+              class="guess-input"
+              id="guess-input"
+              type="number"
+              min="1"
+              max="100"
+              placeholder="أدخل رقم من 1 إلى 100"
+              dir="ltr"
+              required
+            >
+            <button class="button primary medium" type="submit">تخمين</button>
           </form>
         </div>
       </article>
     </section>
   `;
 
-    document.getElementById("guess-form").addEventListener("submit", handleGuessSubmit);
+  document.getElementById("guess-form").addEventListener("submit", handleGuessSubmit);
 }
 
 function renderWin() {
-    const stars = state.attempts <= 2 ? 3 : state.attempts <= 4 ? 2 : 1;
-    app.innerHTML = `
+const stars = state.attempts <= 3 ? 3 : state.attempts <= 7 ? 2 : 1;
+
+  app.innerHTML = `
     <section class="screen win-screen">
       <article class="panel">
         <div class="panel-bar gold"></div>
         <div class="panel-body">
           <div class="trophy">🏆</div>
           <h2 class="win-title">مبروووك! 🎉</h2>
-          <p class="win-subtitle">عرفت الرقم!</p>
+          <p class="win-subtitle">عرفت الرقم</p>
 
           <div class="stars">
             ${[1, 2, 3].map((star) => `<span class="star ${star <= stars ? "filled" : ""}">★</span>`).join("")}
@@ -472,29 +510,22 @@ function renderWin() {
     </section>
   `;
 
-    document.getElementById("restart-button").addEventListener("click", startGame);
+  document.getElementById("restart-button").addEventListener("click", startGame);
 }
 
 function render() {
-    updateTopStats();
-    updateHeroVisibility();
+  updateTopStats();
+  updateHeroVisibility();
 
-
-    if (state.screen === "start") {
-        renderStart();
-        return;
-    }
-
-    if (state.screen === "question") {
-        renderQuestion();
-        return;
-    }
-
-    if (state.screen === "guess") {
-        renderGuess();
-        return;
-    }
+  if (state.screen === "start") {
+    renderStart();
+  } else if (state.screen === "question") {
+    renderQuestion();
+  } else if (state.screen === "guess") {
+    renderGuess();
+  } else if (state.screen === "win") {
     renderWin();
+  }
 }
 
 render();
